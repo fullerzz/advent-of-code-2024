@@ -84,11 +84,68 @@ def calculate_safe_reports(reports: list[str]) -> int:
 def part_1() -> None:
     reports = read_input()
     safe_report_count = calculate_safe_reports(reports)
-    console.print(Panel(f"[bold green]{safe_report_count=} [/]", title="[bold cyan]Day 1 - Part 1[/]", expand=False))
+    console.print(Panel(f"[bold green]{safe_report_count=} [/]", title="[bold cyan]Day 2 - Part 1[/]", expand=False))
+
+
+def report_is_safe_part2(report: str) -> bool:  # noqa: C901
+    # TODO: This isn't working because an issue with a single level could trigger violation_count to be incremented twice
+    levels = report.split(" ")
+    violation_count = 0
+    increasing, decreasing = False, False
+    for i in range(len(levels)):
+        curr = int(levels[i])
+        prev, nxt = None, None
+        if i > 0:
+            prev = int(levels[i - 1])
+        if i < len(levels) - 2:
+            nxt = int(levels[i + 1])
+        violation = False
+        if prev:  # If there's an element to the left in the list
+            valid_trend = True
+            if curr < prev:
+                decreasing = True
+                valid_trend = check_trend(increasing, decreasing, "decreasing")
+            elif curr > prev:
+                increasing = True
+                valid_trend = check_trend(increasing, decreasing, "increasing")
+
+            if not valid_trend:
+                violation = True
+            if not valid_difference(int(prev), int(curr)):
+                violation = True
+        if nxt:
+            valid_trend = True
+            if nxt < curr:
+                decreasing = True
+                valid_trend = check_trend(increasing, decreasing, "decreasing")
+            elif nxt > curr:
+                increasing = True
+                valid_trend = check_trend(increasing, decreasing, "increasing")
+
+            if not valid_trend:
+                violation = True
+            if not valid_difference(int(curr), int(nxt)):
+                violation = True
+        if violation:
+            violation_count += 1
+        if violation_count > 1:
+            return False
+    return True
+
+
+def calculate_safe_reports_part2(reports: list[str]) -> int:
+    count = 0
+    for report in reports:
+        if report_is_safe_part2(report):
+            count += 1
+
+    return count
 
 
 def part_2() -> None:
-    pass
+    reports = read_input()
+    safe_report_count = calculate_safe_reports_part2(reports)
+    console.print(Panel(f"[bold green]{safe_report_count=} [/]", title="[bold cyan]Day 2 - Part 2[/]", expand=False))
 
 
 def main() -> None:
