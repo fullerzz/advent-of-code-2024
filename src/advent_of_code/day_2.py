@@ -133,11 +133,24 @@ def report_is_safe_part2(report: str) -> bool:  # noqa: C901
     return True
 
 
+def evaluate_report_safety_part2(levels: list[int]) -> bool:
+    return True
+
+
+def tokenize_line(report: str) -> list[int]:
+    return [int(level) for level in report.split(" ")]
+
+
 def calculate_safe_reports_part2(reports: list[str]) -> int:
     count = 0
     for report in reports:
-        if report_is_safe_part2(report):
+        levels = tokenize_line(report)
+        safe = evaluate_report_safety_part2(levels)
+        if safe:
             count += 1
+        else:
+            # do crazy stuff to remove an element to see if it passes
+            pass
 
     return count
 
