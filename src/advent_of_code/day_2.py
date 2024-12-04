@@ -1,4 +1,3 @@
-import contextlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -6,7 +5,6 @@ from typing import Literal
 from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 
 console = Console()
 
@@ -109,8 +107,10 @@ def output_level(levels: list[Level], problem_index: int | None = None) -> None:
     console.print(columns)
 
 
-def output_break() -> None:
-    console.print("\n⭐ 🦄 ✨ 🧙 ⭐ 🦄 ✨ 🧙 ⭐ 🦄 ✨ 🧙 ⭐ 🦄 ✨ 🧙\n")
+def output_break(msg: str, err: str = "") -> None:
+    console.print(f"⭐ 🦄 ✨ 🧙 [bold purple]{msg}:[/] [bold red]{err}[/] ⭐ 🦄 ✨ 🧙")
+    if msg == "end":
+        console.print("\n")
 
 
 def evaluate_report_safety_part2(levels: list[Level]) -> bool:
@@ -119,21 +119,21 @@ def evaluate_report_safety_part2(levels: list[Level]) -> bool:
             # Increasing from prev -> curr
             if level.next is not None and level.next < level.curr:
                 # Increase -> Decrease
-                raise ValueError(f"Increase->Decrease: {index + 1}")
+                raise ValueError(f"Increase->Decrease: {index}")
             if level.prev == level.curr:
                 raise ValueError(f"SameValue: {index}")
         elif level.prev is not None and level.prev > level.curr:
             # Decreasing from prev -> curr
             if level.next is not None and level.next > level.curr:
-                # Decrease Increase -> Decrease
-                raise ValueError(f"Decrease->Increase: {index}")
+                # Increase -> Decrease
+                raise ValueError(f"Increase->Decrease: {index}")
         if level.next is not None:
             if level.next == level.curr:
                 raise ValueError(f"SameValue: {index + 1}")
             # Perform difference validation
             difference = abs(level.next - level.curr)
             if difference < 1 or difference > 3:
-                raise ValueError(f"InvalidDifference: {index}")
+                raise ValueError(f"InvalidDifference: {index + 1}")
 
     return True
 
@@ -143,27 +143,45 @@ def tokenize_line(report: str) -> list[Level]:
     levels: list[Level] = []
     for index, level in enumerate(level_ints):
         prev, next = None, None
-        if index > 1:
+        if index > 0:
             prev = level_ints[index - 1]
-        if index < len(level_ints) - 2:
+        if index < len(level_ints) - 1:
             next = level_ints[index + 1]
         levels.append(Level(prev=prev, curr=level, next=next))
     return levels
 
 
+def remove_level(levels: list[Level], problem_index: int) -> list[Level]:
+    console.print(f"[cyan]Removing problem index:[/][red] {problem_index}[/]")
+    report = ""
+    for i, level in enumerate(levels):
+        if i != problem_index:
+            report += f"{level.curr} "
+    # fix prev and next nodes bc theyll still point to deleted level and it's fucking shit up
+    cleansed_levels = tokenize_line(report.rstrip())
+    return cleansed_levels
+
+
 def calculate_safe_reports_part2(reports: list[str]) -> int:
     count = 0
+    verified_count = 1
+    verfified_index = 1000
     for report in reports:
+        if verified_count > verfified_index:
+            break
+        verified_count += 1
         levels = tokenize_line(report)
         try:
             safe = evaluate_report_safety_part2(levels)
             if safe:
                 count += 1
         except ValueError as e:
+            output_break("start", repr(e))
             problem_index = int(str(e).split(": ")[-1])
             output_level(levels, problem_index=problem_index)
-            problem_level = levels[problem_index]
-            levels.remove(problem_level)
+            # problem_level = levels[problem_index]
+            # levels.remove(problem_level)
+            levels = remove_level(levels, problem_index)
             output_level(levels)
             safe = False
             try:
@@ -175,7 +193,7 @@ def calculate_safe_reports_part2(reports: list[str]) -> int:
                 console.print(f":x: [bold red]Dangerous! {e!s}[/]")
                 problem_index = int(str(e).split(": ")[-1])
                 output_level(levels, problem_index)
-            output_break()
+            output_break("end")
     return count
 
 
