@@ -45,32 +45,55 @@ def extract_right(substr: str) -> str:
     return possible_num[0:closing_parentheses]
 
 
-def extract_instructions(text: str) -> list[Mul]:
+def extract_instructions(text: str, validate: bool = False) -> list[Mul]:
     index = text.find("mul(")
     muls = []
+    do_index = 0
+    dont_index = -1
     while index != -1:
         left = extract_left(text[index : index + 12])
         right = extract_right(text[index : index + 12])
-        index = text.find("mul(", index + 4)
         with contextlib.suppress(ValidationError):
-            muls.append(Mul(raw_left=left, raw_right=right))
+            mul = Mul(raw_left=left, raw_right=right)
+            if validate:
+                do_index = extract_next_do(text, do_index, index)
+                dont_index = extract_next_dont(text, dont_index, index)
+                validate_instruction(index, text, do_index, dont_index)
+            muls.append(mul)
+        index = text.find("mul(", index + 4)
     return muls
 
 
-def part_1() -> None:
-    text = read_input()
+def part_1(text: str) -> None:
     instructions = extract_instructions(text)
     total = sum(mul.product for mul in instructions)
     console.print(Panel(f"[bold green]{total=} [/]", title="[bold cyan]Day 3 - Part 1[/]", expand=False))
 
 
-def part_2() -> None:
-    pass
+def extract_next_do(text: str, curr: int, instruction_index: int) -> int:
+    return text.find("do()", curr + 1, instruction_index)
+
+
+def extract_next_dont(text: str, curr: int, instruction_index: int) -> int:
+    if curr == -1:
+        return text.find("dont()")
+    return text.find("dont()", curr + 1, instruction_index)
+
+
+def validate_instruction(instruction_index: int, text: str, do_index: int, dont_index: int) -> bool:
+    return do_index >= dont_index
+
+
+def part_2(text: str) -> None:
+    instructions = extract_instructions(text, validate=True)
+    total = sum(mul.product for mul in instructions)
+    console.print(Panel(f"[bold green]{total=} [/]", title="[bold cyan]Day 3 - Part 2[/]", expand=False))
 
 
 def main() -> None:
-    part_1()
-    part_2()
+    text = read_input()
+    part_1(text)
+    part_2(text)
 
 
 if __name__ == "__main__":
