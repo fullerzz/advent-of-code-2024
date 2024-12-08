@@ -98,8 +98,6 @@ def part_1(lines: list[str]) -> None:
     updates = parse_updates(lines)
     valid_updates = validate_updates_against_rules(updates, rules)
     total = sum_middle_page_nums(valid_updates)
-    console.print(Panel(f"[bold green]{len(updates)} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
-    console.print(Panel(f"[bold green]{len(valid_updates)} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
     console.print(Panel(f"[bold green]{total=} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
 
 
