@@ -85,12 +85,22 @@ def validate_updates_against_rules(updates: list[list[int]], rules: dict[int, li
     return valid_updates
 
 
+def sum_middle_page_nums(valid_updates: list[list[int]]) -> int:
+    vals: list[int] = []
+    for update in valid_updates:
+        middle_index = int(len(update) / 2)
+        vals.append(update[middle_index])
+    return sum(vals)
+
+
 def part_1(lines: list[str]) -> None:
     rules = parse_rules(lines)
     updates = parse_updates(lines)
     valid_updates = validate_updates_against_rules(updates, rules)
+    total = sum_middle_page_nums(valid_updates)
     console.print(Panel(f"[bold green]{len(updates)} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
     console.print(Panel(f"[bold green]{len(valid_updates)} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
+    console.print(Panel(f"[bold green]{total=} [/]", title="[bold cyan]Day 5 - Part 1[/]", expand=False))
 
 
 def part_2() -> None:
